@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mackenzie Birly Massie | Interactive Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        dark: '#050505',
+                        darker: '#020202',
+                        brand: {
+                            cyan: '#00f2fe',
+                            blue: '#4facfe',
+                            purple: '#7f00ff',
+                            pink: '#e100ff',
+                            ninjaRed: '#d11124',
+                            tarotGold: '#d4af37'
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'mesh': 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Resets & Custom Variables */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --neon-glow: 0 0 10px rgba(0, 242, 254, 0.5), 0 0 20px rgba(79, 172, 254, 0.3);
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020202;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #4facfe, #e100ff);
+            border-radius: 5px;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-left: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #00f2fe, #4facfe);
+        }
+        .text-gradient-purple {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #7f00ff, #e100ff);
+        }
+        .text-gradient-gold {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        }
+
+        /* Particles Canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(0, 242, 254, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+        }
+
+        /* Scroll Reveal Utility Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-100px);
+            transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-left.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .reveal-right {
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-right.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Terminal Styles */
+        .terminal-container {
+            background: rgba(10, 10, 15, 0.95);
+            border-radius: 12px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+            overflow: hidden;
+            position: relative;
+        }
+        .terminal-header {
+            background: #1a1a24;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+        .terminal-title {
+            margin: 0 auto;
+            color: #888;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+        .terminal-body {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #a9b7c6;
+            position: relative;
+        }
+        .terminal-body::-webkit-scrollbar { width: 6px; }
+        .terminal-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        
+        .code-keyword { color: #cc7832; font-weight: bold; }
+        .code-string { color: #6a8759; }
+        .code-function { color: #ffc66d; }
+        .code-comment { color: #808080; font-style: italic; }
+        .code-variable { color: #9876aa; }
+        .code-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #00f2fe;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Tarot Card 3D Flip Mechanics */
+        .tarot-scene {
+            perspective: 1500px;
+            width: 100%;
+            height: 450px;
+            margin-bottom: 2rem;
+        }
+        .tarot-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .tarot-scene:hover .tarot-card {
+            transform: rotateY(180deg) scale(1.05);
+        }
+        .tarot-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        .tarot-front {
+            background: linear-gradient(135deg, #1a0b2e, #0f0518);
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 3.333l1.667 6.667L28.333 11.667 21.667 13.333 20 20l-1.667-6.667L11.667 11.667l6.667-1.667L20 3.333z' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .tarot-back {
+            background: linear-gradient(135deg, #2a0845, #6441A5);
+            transform: rotateY(180deg);
+        }
+        .tarot-border {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            pointer-events: none;
+            border-radius: 0.5rem;
+        }
+
+        /* Tilt Container */
+        .tilt-element {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+        .tilt-inner {
+            transform: translateZ(30px);
+        }
+
+        /* Glow effects for specific sections */
+        .glow-red:hover { box-shadow: 0 0 30px rgba(209, 17, 36, 0.4); border-color: rgba(209, 17, 36, 0.6); }
+        .glow-blue:hover { box-shadow: 0 0 30px rgba(0, 191, 255, 0.4); border-color: rgba(0, 191, 255, 0.6); }
+        .glow-green:hover { box-shadow: 0 0 30px rgba(50, 205, 50, 0.4); border-color: rgba(50, 205, 50, 0.6); }
+        .glow-white:hover { box-shadow: 0 0 30px rgba(255, 255, 255, 0.4); border-color: rgba(255, 255, 255, 0.6); }
+        .glow-black:hover { box-shadow: 0 0 30px rgba(100, 100, 100, 0.4); border-color: rgba(100, 100, 100, 0.6); }
+
+        /* Science Cards */
+        .science-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        .science-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        .science-card:hover::before {
+            opacity: 1;
+            animation: orbit 4s linear infinite;
+        }
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translate(-50%, -50%); }
+            100% { transform: rotate(360deg) translate(-50%, -50%); }
+        }
+
+    </style>
+</head>
+<body class="bg-mesh antialiased relative selection:bg-brand-purple selection:text-white">
+
+    <!-- Ambient Background Effects -->
+    <canvas id="particle-canvas"></canvas>
+    
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-purple rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-brand-cyan rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-pink rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="glass border-b border-white/10 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <span class="text-white">M</span>
+                    <span class="text-gradient">B</span>
+                    <span class="text-white">M</span>
+                    <span class="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></span>
+                </a>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-300">
+                    <a href="#about" class="hover:text-brand-cyan transition-colors">About</a>
+                    <a href="#code" class="hover:text-brand-purple transition-colors">Code Journey</a>
+                    <a href="#interests" class="hover:text-brand-pink transition-colors">Interests</a>
+                </div>
+                <button class="md:hidden text-gray-300 hover:text-white">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 pt-20">
+        
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center relative px-6 py-20 overflow-hidden">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <div class="space-y-8 z-10 reveal-left">
+                    <div class="inline-block glass-panel px-4 py-2 rounded-full text-xs font-semibold tracking-wider text-brand-cyan mb-4 uppercase">
+                        System Initialization Complete
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
+                        Hi, I'm <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple">
+                            Mackenzie Birly Massie
+                        </span>
+                    </h1>
+                    
+                    <div class="h-12 text-xl md:text-2xl font-mono text-gray-300 flex items-center">
+                        <span class="mr-2">&gt;</span>
+                        <span id="typewriter-text" class="text-brand-pink"></span><span class="code-cursor"></span>
+                    </div>
+
+                    <p class="text-gray-400 text-lg max-w-lg leading-relaxed">
+                        A <span class="text-white font-bold">26-year-old</span> digital architect obsessed with translating logic into art. I explore the synthesis between deep technical programming, abstract sciences, and rich storytelling.
+                    </p>
+
+                    <div class="flex gap-4 pt-4">
+                        <a href="#code" class="px-8 py-4 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                            Explore My Code
+                        </a>
+                        <a href="#interests" class="px-8 py-4 glass-panel text-white font-bold rounded-lg hover:bg-white/10 transition-all transform hover:scale-105">
+                            My Universe
+                        </a>
+                    </div>
+                </div>
+
+                <div class="relative z-10 reveal-right hidden lg:block perspective-1000">
+                    <div class="tilt-element glass-panel w-full h-[500px] rounded-2xl relative p-8 flex flex-col justify-between overflow-hidden shadow-2xl border-white/20">
+                        <div class="absolute inset-0 bg-gradient-to-br from-brand-blue/10 to-brand-purple/10"></div>
+                        
+                        <div class="tilt-inner relative z-20">
+                            <i class="fas fa-microchip text-4xl text-brand-cyan mb-6"></i>
+                            <h3 class="text-2xl font-bold mb-2">Cognitive Core Active</h3>
+                            <p class="text-gray-400 font-mono text-sm">Processing age_int = 26; status = "learning_obsessed";</p>
+                        </div>
+                        
+                        <div class="tilt-inner relative z-20 mt-auto">
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full glass flex items-center justify-center text-brand-pink">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm text-gray-400">Primary Drive</div>
+                                        <div class="font-bold">Algorithmic Mastery</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full glass flex items-center justify-center text-brand-tarotGold">
+                                        <i class="fas fa-moon"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm text-gray-400">Secondary Interest</div>
+                                        <div class="font-bold">Esoteric Systems (Tarot)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Decorative tech elements -->
+                        <div class="absolute bottom-4 right-4 text-xs font-mono text-white/30 text-right">
+                            v.26.0.0 <br>
+                            MACKENZIE_SYS
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer opacity-50 hover:opacity-100 transition-opacity z-20">
+                <a href="#code"><i class="fas fa-chevron-down text-2xl"></i></a>
+            </div>
+        </section>
+
+        <!-- Code Simulator Section -->
+        <section id="code" class="py-24 relative px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4">The Matrix of <span class="text-gradient">Languages</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto">My unyielding passion for understanding how machines think. I don't just learn syntax; I learn paradigms. Watch my simulated thought process.</p>
+                </div>
+
+                <div class="terminal-container reveal tilt-element mx-auto max-w-4xl">
+                    <div class="terminal-header tilt-inner">
+                        <div class="terminal-dots">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                        </div>
+                        <div class="terminal-title">mackenzie@dev-core: ~/projects/passion</div>
+                        <div class="text-gray-500 text-xs"><i class="fas fa-wifi"></i></div>
+                    </div>
+                    <div class="terminal-body" id="terminal-output">
+                        <!-- Code lines will be injected here via JS -->
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-brand-cyan via-brand-purple to-brand-pink opacity-50"></div>
+                </div>
+                
+                <!-- Language tags below terminal -->
+                <div class="flex flex-wrap justify-center gap-4 mt-12 reveal">
+                    <span class="glass px-4 py-2 rounded-full text-sm font-mono hover:bg-white/10 transition cursor-default border-brand-cyan/30 text-brand-cyan"><i class="fab fa-python mr-2"></i>Python</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm font-mono hover:bg-white/10 transition cursor-default border-yellow-400/30 text-yellow-400"><i class="fab fa-js mr-2"></i>JavaScript</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm font-mono hover:bg-white/10 transition cursor-default border-blue-500/30 text-blue-500"><i class="fab fa-cuttlefish mr-2"></i>C++</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm font-mono hover:bg-white/10 transition cursor-default border-orange-500/30 text-orange-500"><i class="fab fa-rust mr-2"></i>Rust</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm font-mono hover:bg-white/10 transition cursor-default border-brand-pink/30 text-brand-pink"><i class="fas fa-database mr-2"></i>SQL</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interests Section -->
+        <section id="interests" class="py-24 relative px-6 bg-darker/50">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-20 reveal">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4">Facets of <span class="text-gradient-purple">Curiosity</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto">Beyond the screen, my mind wanders through diverse realms. From elemental warriors to cosmic mysteries and biological intricacies.</p>
+                </div>
+
+                <!-- Sub-section: Lego Ninjago -->
+                <div class="mb-32">
+                    <div class="flex items-center gap-4 mb-10 reveal">
+                        <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-red-600"></div>
+                        <h3 class="text-3xl font-bold text-white uppercase tracking-widest font-mono"><i class="fas fa-fire text-red-500 mr-3"></i>Lego Ninjago</h3>
+                        <div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-red-600"></div>
+                    </div>
+                    <p class="text-center text-gray-400 mb-12 max-w-3xl mx-auto reveal">A lifelong fascination with the lore, the elemental powers, and the masterful storytelling of the Spinjitzu universe. It's not just plastic bricks; it's world-building.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Kai -->
+                        <div class="glass-panel rounded-xl p-6 tilt-element glow-red reveal transition-all cursor-pointer group">
+                            <div class="tilt-inner text-center space-y-4">
+                                <div class="w-20 h-20 mx-auto rounded-full bg-red-900/50 border-2 border-red-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                    <i class="fas fa-fire-alt text-3xl text-red-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-white">Kai</h4>
+                                <p class="text-sm text-red-400 uppercase tracking-widest">Master of Fire</p>
+                                <p class="text-xs text-gray-400">Fierce, loyal, and headstrong. The fiery core of the team.</p>
+                            </div>
+                        </div>
+                        <!-- Jay -->
+                        <div class="glass-panel rounded-xl p-6 tilt-element glow-blue reveal transition-all cursor-pointer group" style="transition-delay: 100ms">
+                            <div class="tilt-inner text-center space-y-4">
+                                <div class="w-20 h-20 mx-auto rounded-full bg-blue-900/50 border-2 border-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                    <i class="fas fa-bolt text-3xl text-blue-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-white">Jay</h4>
+                                <p class="text-sm text-blue-400 uppercase tracking-widest">Master of Lightning</p>
+                                <p class="text-xs text-gray-400">Inventive, quick-witted, and energetic. The spark of the group.</p>
+                            </div>
+                        </div>
+                        <!-- Cole -->
+                        <div class="glass-panel rounded-xl p-6 tilt-element glow-black reveal transition-all cursor-pointer group" style="transition-delay: 200ms">
+                            <div class="tilt-inner text-center space-y-4">
+                                <div class="w-20 h-20 mx-auto rounded-full bg-gray-900/50 border-2 border-gray-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                    <i class="fas fa-mountain text-3xl text-gray-400"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-white">Cole</h4>
+                                <p class="text-sm text-gray-400 uppercase tracking-widest">Master of Earth</p>
+                                <p class="text-xs text-gray-400">Solid, dependable, and strong. The foundation they stand upon.</p>
+                            </div>
+                        </div>
+                        <!-- Lloyd -->
+                        <div class="glass-panel rounded-xl p-6 tilt-element glow-green reveal transition-all cursor-pointer group" style="transition-delay: 300ms">
+                            <div class="tilt-inner text-center space-y-4">
+                                <div class="w-20 h-20 mx-auto rounded-full bg-green-900/50 border-2 border-green-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                    <i class="fas fa-dragon text-3xl text-green-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-white">Lloyd</h4>
+                                <p class="text-sm text-green-400 uppercase tracking-widest">Green Ninja</p>
+                                <p class="text-xs text-gray-400">The chosen one, representing the ultimate energy and leadership.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-section: Tarot Cards -->
+                <div class="mb-32">
+                    <div class="flex items-center gap-4 mb-10 reveal">
+                        <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-yellow-600"></div>
+                        <h3 class="text-3xl font-bold text-white uppercase tracking-widest font-serif italic"><i class="fas fa-star-and-crescent text-brand-tarotGold mr-3"></i>The Mysticism of Tarot</h3>
+                        <div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-yellow-600"></div>
+                    </div>
+                    <p class="text-center text-gray-400 mb-12 max-w-3xl mx-auto reveal">I find beauty in the archetypes and symbolism of the Tarot. It's a complex system of psychological reflection, much like a highly intricate algorithm mapping the human experience. Hover over the cards to reveal.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        
+                        <!-- Card 1: The Magician -->
+                        <div class="tarot-scene reveal">
+                            <div class="tarot-card">
+                                <div class="tarot-face tarot-front">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-eye text-4xl text-brand-tarotGold mb-4 opacity-50"></i>
+                                    <h4 class="text-brand-tarotGold font-serif text-xl tracking-widest uppercase mb-2">Card I</h4>
+                                    <p class="text-xs text-gray-400 italic">Hover to reveal</p>
+                                </div>
+                                <div class="tarot-face tarot-back">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-magic text-5xl text-brand-tarotGold mb-6 shadow-glow"></i>
+                                    <h4 class="text-2xl font-serif text-white font-bold mb-2">The Magician</h4>
+                                    <p class="text-center text-sm text-gray-300 leading-relaxed px-4">
+                                        Manifestation, resourcefulness, power. As a coder, I relate deeply to the Magician—taking raw elements (logic, syntax) and transforming them into reality (applications, solutions).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: The Hermit -->
+                        <div class="tarot-scene reveal" style="transition-delay: 150ms">
+                            <div class="tarot-card">
+                                <div class="tarot-face tarot-front">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-moon text-4xl text-brand-tarotGold mb-4 opacity-50"></i>
+                                    <h4 class="text-brand-tarotGold font-serif text-xl tracking-widest uppercase mb-2">Card IX</h4>
+                                    <p class="text-xs text-gray-400 italic">Hover to reveal</p>
+                                </div>
+                                <div class="tarot-face tarot-back">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-lantern text-5xl text-brand-tarotGold mb-6"></i>
+                                    <h4 class="text-2xl font-serif text-white font-bold mb-2">The Hermit</h4>
+                                    <p class="text-center text-sm text-gray-300 leading-relaxed px-4">
+                                        Soul-searching, introspection, being alone, inner guidance. Represents the late nights spent debugging, isolated with one's thoughts, seeking the illuminating light of a solution.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: The Star -->
+                        <div class="tarot-scene reveal" style="transition-delay: 300ms">
+                            <div class="tarot-card">
+                                <div class="tarot-face tarot-front">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-sun text-4xl text-brand-tarotGold mb-4 opacity-50"></i>
+                                    <h4 class="text-brand-tarotGold font-serif text-xl tracking-widest uppercase mb-2">Card XVII</h4>
+                                    <p class="text-xs text-gray-400 italic">Hover to reveal</p>
+                                </div>
+                                <div class="tarot-face tarot-back">
+                                    <div class="tarot-border"></div>
+                                    <i class="fas fa-star text-5xl text-brand-tarotGold mb-6"></i>
+                                    <h4 class="text-2xl font-serif text-white font-bold mb-2">The Star</h4>
+                                    <p class="text-center text-sm text-gray-300 leading-relaxed px-4">
+                                        Hope, faith, purpose, renewal. The ultimate inspiration. It reflects the constant desire to learn new languages and technologies, always looking toward the bright future of innovation.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Sub-section: Sciences -->
+                <div>
+                    <div class="flex items-center gap-4 mb-10 reveal">
+                        <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-brand-cyan"></div>
+                        <h3 class="text-3xl font-bold text-white uppercase tracking-widest font-sans"><i class="fas fa-atom text-brand-cyan mr-3"></i>The Empirical Sciences</h3>
+                        <div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-brand-cyan"></div>
+                    </div>
+                    <p class="text-center text-gray-400 mb-12 max-w-3xl mx-auto reveal">Understanding the rules of the universe, life, and society is paramount. My analytical mind thrives on decoding these foundational systems.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        <!-- Physics -->
+                        <div class="glass science-card rounded-2xl p-8 reveal border-t-4 border-t-brand-cyan">
+                            <div class="flex justify-between items-start mb-6">
+                                <h4 class="text-2xl font-bold text-white">Physics</h4>
+                                <div class="p-3 bg-brand-cyan/20 rounded-lg text-brand-cyan">
+                                    <i class="fas fa-space-shuttle text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                The fundamental study of matter, energy, and the mechanics of reality. From classical mechanics to the bewildering world of quantum entanglement, physics is the universe's source code. I am fascinated by how mathematical equations can predict physical phenomena with staggering accuracy.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                    <div class="bg-brand-cyan h-1.5 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <div class="text-xs text-gray-400 text-right">Interest Level: High</div>
+                            </div>
+                        </div>
+
+                        <!-- Biology -->
+                        <div class="glass science-card rounded-2xl p-8 reveal border-t-4 border-t-green-500" style="transition-delay: 150ms">
+                            <div class="flex justify-between items-start mb-6">
+                                <h4 class="text-2xl font-bold text-white">Biology</h4>
+                                <div class="p-3 bg-green-500/20 rounded-lg text-green-500">
+                                    <i class="fas fa-dna text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                The complex machinery of life. Understanding DNA as the ultimate programming language of organic matter. The evolutionary algorithms that shape ecosystems and cellular structures are incredibly inspiring to my computational mindset.
+                            </p>
+                            <div class="space-y-3 mt-auto">
+                                <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <div class="text-xs text-gray-400 text-right">Interest Level: Strong</div>
+                            </div>
+                        </div>
+
+                        <!-- Indonesian Civics -->
+                        <div class="glass science-card rounded-2xl p-8 reveal border-t-4 border-t-red-500" style="transition-delay: 300ms">
+                            <div class="flex justify-between items-start mb-6">
+                                <h4 class="text-2xl font-bold text-white">Indonesian Civics</h4>
+                                <div class="p-3 bg-red-500/20 rounded-lg text-red-500">
+                                    <i class="fas fa-landmark text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                The structural framework of my home. Studying the constitution, Pancasila, and the intricate balance of governance in a diverse archipelago. It's the sociological and legal code that compiles to create societal order and national identity.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                    <div class="bg-red-500 h-1.5 rounded-full" style="width: 90%"></div>
+                                </div>
+                                <div class="text-xs text-gray-400 text-right">Interest Level: Vital</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative bg-dark border-t border-white/10 pt-20 pb-10 overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwYzUuNSAwIDEwLTQuNSAxMC0xMFMyNS41IDAgMjAgMCAxMCA0LjUgMTAgMTBzNC41IDEwIDEwIDEwem0wIDEwYzUuNSAwIDEwLTQuNSAxMC0xMFMyNS41IDEwIDIwIDEwIDEwIDE0LjUgMTAgMjBzNC41IDEwIDEwIDEweiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjAyIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-30"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <a href="#" class="text-3xl font-bold tracking-tighter flex items-center gap-2 mb-6">
+                        <span class="text-white">M</span>
+                        <span class="text-gradient">B</span>
+                        <span class="text-white">M</span>
+                    </a>
+                    <p class="text-gray-400 max-w-sm leading-relaxed mb-6">
+                        Mackenzie Birly Massie. 26 years of curiosity. Constantly compiling thoughts into reality, one line of code at a time.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-brand-cyan hover:text-black transition-colors"><i class="fab fa-github"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-brand-blue hover:text-black transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-brand-purple hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Navigation</h5>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#" class="hover:text-brand-cyan transition-colors">Home</a></li>
+                        <li><a href="#code" class="hover:text-brand-cyan transition-colors">Code Simulator</a></li>
+                        <li><a href="#interests" class="hover:text-brand-cyan transition-colors">Lego Ninjago</a></li>
+                        <li><a href="#interests" class="hover:text-brand-cyan transition-colors">Tarot Cards</a></li>
+                        <li><a href="#interests" class="hover:text-brand-cyan transition-colors">Sciences</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">System Status</h5>
+                    <ul class="space-y-3 text-gray-400 font-mono text-sm">
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Brain: Active</li>
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Coffee: Sufficient</li>
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></div> Code: Compiling</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm mb-4 md:mb-0">
+                    &copy; 2026 Mackenzie Birly Massie. Crafted with logic & art.
+                </p>
+                <div class="text-gray-500 text-sm font-mono flex items-center gap-2">
+                    <i class="fas fa-terminal"></i> echo "Goodbye, World!"
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. Advanced Particle System Engine ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouse = {
+            x: null,
+            y: null,
+            radius: (canvas.height / 80) * (canvas.width / 80)
+        }
+
+        window.addEventListener('mousemove',
+            function(event) {
+                mouse.x = event.x;
+                mouse.y = event.y;
+            }
+        );
+
+        window.addEventListener('mouseout',
+            function() {
+                mouse.x = undefined;
+                mouse.y = undefined;
+            }
+        );
+
+        // Particle Class
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+            }
+            // Draw particle
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            // Update particle position
+            update() {
+                // Check if particle is still within canvas
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+
+                // Check collision detection - mouse position / particle position
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+                let maxDistance = mouse.radius;
+                let force = (maxDistance - distance) / maxDistance;
+                let directionX = forceDirectionX * force * this.density;
+                let directionY = forceDirectionY * force * this.density;
+
+                if (distance < mouse.radius) {
+                    this.x -= directionX;
+                    this.y -= directionY;
+                } else {
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx/10;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy/10;
+                    }
+                }
+                // Move particle
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        // Initialize particle array
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            // Reduce particle count slightly for performance on massive file
+            numberOfParticles = Math.min(numberOfParticles, 120); 
+            
+            const colors = ['#00f2fe', '#4facfe', '#7f00ff', '#e100ff', 'rgba(255,255,255,0.2)'];
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 3) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = colors[Math.floor(Math.random() * colors.length)];
+
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        // Check if particles are close enough to draw line
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(127, 0, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Animation Loop
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        // Resize event
+        window.addEventListener('resize',
+            function() {
+                canvas.width = innerWidth;
+                canvas.height = innerHeight;
+                mouse.radius = ((canvas.height/80) * (canvas.width/80));
+                initParticles();
+            }
+        );
+
+        initParticles();
+        animateParticles();
+
+
+        // --- 2. Typewriter Effect Logic ---
+        const texts = [
+            "Full Stack Developer",
+            "Logic Enthusiast",
+            "Lifelong Learner",
+            "Code Philosopher"
+        ];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typewriterElement = document.getElementById('typewriter-text');
+        
+        function type() {
+            const currentText = texts[textIndex];
+            
+            if (isDeleting) {
+                typewriterElement.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typewriterElement.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentText.length) {
+                typeSpeed = 2000; // Pause at end of phrase
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                typeSpeed = 500; // Pause before typing next phrase
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+        
+        setTimeout(type, 1000); // Initial delay
+
+
+        // --- 3. Terminal Simulator Logic ---
+        const terminalOutput = document.getElementById('terminal-output');
+        const codeLines = [
+            '<span class="code-comment">// Initialization Sequence: Mackenzie_v26</span>',
+            '<span class="code-keyword">import</span> { <span class="code-variable">Passion</span>, <span class="code-variable">Logic</span>, <span class="code-variable">Curiosity</span> } <span class="code-keyword">from</span> <span class="code-string">"human-core"</span>;',
+            '',
+            '<span class="code-keyword">class</span> <span class="code-function">Developer</span> <span class="code-keyword">extends</span> <span class="code-variable">Human</span> {',
+            '  <span class="code-function">constructor</span>(name, age) {',
+            '    <span class="code-keyword">super</span>();',
+            '    <span class="code-keyword">this</span>.name = <span class="code-string">"Mackenzie Birly Massie"</span>;',
+            '    <span class="code-keyword">this</span>.age = <span class="code-variable">26</span>;',
+            '    <span class="code-keyword">this</span>.languages = [<span class="code-string">"Python"</span>, <span class="code-string">"JS"</span>, <span class="code-string">"C++"</span>, <span class="code-string">"Rust"</span>];',
+            '  }',
+            '',
+            '  <span class="code-keyword">async</span> <span class="code-function">learnNewSkill</span>(skillName) {',
+            '    <span class="code-keyword">try</span> {',
+            '      <span class="code-comment">// Commencing deep learning phase</span>',
+            '      <span class="code-keyword">await</span> <span class="code-variable">Brain</span>.<span class="code-function">absorb</span>(skillName);',
+            '      <span class="code-keyword">return</span> <span class="code-string">"Mastery in progress..."</span>;',
+            '    } <span class="code-keyword">catch</span> (err) {',
+            '      <span class="code-variable">console</span>.<span class="code-function">log</span>(<span class="code-string">"Error: Need more coffee."</span>);',
+            '    }',
+            '  }',
+            '}',
+            '',
+            '<span class="code-keyword">const</span> mackenzie = <span class="code-keyword">new</span> <span class="code-function">Developer</span>();',
+            '<span class="code-variable">mackenzie</span>.<span class="code-function">learnNewSkill</span>(<span class="code-string">"Machine Learning"</span>);',
+            '<span class="code-comment">/* Output: Analyzing neural networks... */</span>',
+            '<span class="code-comment">/* System stabilized. Ready for input. */</span>',
+            '<span class="code-keyword">def</span> <span class="code-function">explore_interests</span>():',
+            '    interests = {',
+            '        <span class="code-string">"Lego Ninjago"</span>: <span class="code-string">"Lore & Strategy"</span>,',
+            '        <span class="code-string">"Tarot"</span>: <span class="code-string">"Esoteric Algorithms"</span>,',
+            '        <span class="code-string">"Sciences"</span>: [<span class="code-string">"Physics"</span>, <span class="code-string">"Biology"</span>, <span class="code-string">"Civics"</span>]',
+            '    }',
+            '    <span class="code-keyword">for</span> key, val <span class="code-keyword">in</span> interests.<span class="code-function">items</span>():',
+            '        <span class="code-function">print</span>(f<span class="code-string">"Analyzing {key}: {val}"</span>)',
+            '',
+            '<span class="code-function">explore_interests</span>()',
+            '<span class="code-comment"># Execution complete. Loop continuing...</span>'
+        ];
+
+        let lineIndex = 0;
+        function renderTerminalCode() {
+            if (lineIndex < codeLines.length) {
+                const line = document.createElement('div');
+                line.innerHTML = codeLines[lineIndex];
+                
+                // Remove cursor from previous line if exists
+                const oldCursor = document.querySelector('.code-cursor-terminal');
+                if (oldCursor) oldCursor.remove();
+
+                // Add cursor to current line
+                line.innerHTML += '<span class="code-cursor code-cursor-terminal"></span>';
+                
+                terminalOutput.appendChild(line);
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                
+                lineIndex++;
+                
+                // Random delay for typing feel
+                const delay = Math.random() * 200 + 50; 
+                setTimeout(renderTerminalCode, delay);
+            } else {
+                // Keep the final blinking cursor
+                 const oldCursor = document.querySelector('.code-cursor-terminal');
+                 if(!oldCursor){
+                     const cursor = document.createElement('span');
+                     cursor.className = 'code-cursor code-cursor-terminal';
+                     terminalOutput.appendChild(cursor);
+                 }
+            }
+        }
+        
+        // Start terminal typing when in view
+        let terminalStarted = false;
+        const terminalObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !terminalStarted) {
+                terminalStarted = true;
+                setTimeout(renderTerminalCode, 500);
+            }
+        }, { threshold: 0.5 });
+        terminalObserver.observe(document.getElementById('code'));
+
+
+        // --- 4. Vanilla 3D Tilt Effect Logic ---
+        const tiltElements = document.querySelectorAll('.tilt-element');
+
+        tiltElements.forEach(element => {
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left; // x position within the element
+                const y = e.clientY - rect.top;  // y position within the element
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // Calculate rotation (max 15 degrees)
+                const rotateX = ((y - centerY) / centerY) * -15;
+                const rotateY = ((x - centerX) / centerX) * 15;
+                
+                element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                
+                // Adjust inner elements for parallax
+                const inners = element.querySelectorAll('.tilt-inner');
+                inners.forEach(inner => {
+                    inner.style.transform = `translateZ(40px)`;
+                });
+            });
+
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                element.style.transition = 'transform 0.5s ease';
+                
+                const inners = element.querySelectorAll('.tilt-inner');
+                inners.forEach(inner => {
+                    inner.style.transform = `translateZ(0px)`;
+                    inner.style.transition = 'transform 0.5s ease';
+                });
+                
+                // Remove transition after it finishes so hover is snappy again
+                setTimeout(() => {
+                    element.style.transition = '';
+                    inners.forEach(inner => inner.style.transition = '');
+                }, 500);
+            });
+        });
+
+
+        // --- 5. Scroll Reveal Intersection Observer ---
+        const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+        
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Optional: stop observing once revealed
+                    // observer.unobserve(entry.target); 
+                }
+            });
+        }, {
+            root: null,
+            threshold: 0.15,
+            rootMargin: "0px 0px -50px 0px"
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // --- 6. Navbar Scroll Effect ---
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-dark/80');
+                navbar.classList.add('shadow-lg');
+                navbar.classList.remove('py-4');
+                navbar.classList.add('py-2');
+            } else {
+                navbar.classList.remove('bg-dark/80');
+                navbar.classList.remove('shadow-lg');
+                navbar.classList.remove('py-2');
+                navbar.classList.add('py-4');
+            }
+        });
+
+    </script>
+</body>
+</html>

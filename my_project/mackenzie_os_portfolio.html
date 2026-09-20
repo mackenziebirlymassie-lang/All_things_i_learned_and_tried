@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mackenzie OS | Virtual Portfolio Environment</title>
+    
+    <!-- External Fonts for Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (for base utilities, though heavily augmented by custom CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        os: {
+                            dark: '#0a0a0f',
+                            panel: 'rgba(15, 15, 25, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.1)',
+                            accent1: '#00f2fe',
+                            accent2: '#4facfe',
+                            accent3: '#7f00ff',
+                            accent4: '#e100ff',
+                            fcc: '#0a0a23' // FreeCodeCamp primary color
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================
+           CORE SYSTEM VARIABLES & RESETS
+           ========================================= */
+        :root {
+            --glass-bg: rgba(20, 20, 30, 0.6);
+            --glass-border-light: rgba(255, 255, 255, 0.15);
+            --glass-border-dark: rgba(0, 0, 0, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            
+            --fcc-color: #0a0a23;
+            --fcc-text: #f5f6f7;
+            
+            --ninjago-red: #d11124;
+            --ninjago-blue: #0056b3;
+            --ninjago-black: #111111;
+            --ninjago-white: #f0f0f0;
+            --ninjago-green: #2ecc71;
+            
+            --tarot-gold: #d4af37;
+            --tarot-dark: #1a0b2e;
+            
+            --cursor-glow: 0 0 20px rgba(0, 242, 254, 0.6);
+            --z-desktop: 10;
+            --z-window-base: 100;
+            --z-taskbar: 9999;
+            --z-start-menu: 9998;
+            --z-cursor: 10000;
+            --z-boot: 20000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* Prevent text selection on desktop UI elements */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--os-dark);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Allow selection in specific content areas */
+        .selectable {
+            user-select: text;
+        }
+
+        /* Custom OS Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* =========================================
+           BOOT SEQUENCE ANIMATIONS
+           ========================================= */
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: var(--z-boot);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+        }
+        .boot-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .boot-logo-container {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .boot-ring {
+            position: absolute;
+            inset: 0;
+            border: 2px solid transparent;
+            border-top-color: var(--os-accent1);
+            border-bottom-color: var(--os-accent3);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+        .boot-ring:nth-child(2) {
+            inset: 10px;
+            border-top-color: var(--os-accent4);
+            border-bottom-color: var(--os-accent2);
+            animation: spin-reverse 2s linear infinite;
+        }
+        .boot-text {
+            font-family: 'Fira Code', monospace;
+            color: #00f2fe;
+            font-size: 1.5rem;
+            letter-spacing: 0.2em;
+            animation: pulse 2s infinite;
+        }
+
+        /* =========================================
+           DESKTOP ENVIRONMENT
+           ========================================= */
+        #desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1a 100%);
+            overflow: hidden;
+        }
+
+        /* Background Canvas */
+        #bg-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        #cursor-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: var(--z-cursor);
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        /* Desktop Icons Grid */
+        #icon-grid {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            bottom: 60px; /* Leave room for taskbar */
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 20px;
+            z-index: var(--z-desktop);
+            padding: 10px;
+        }
+
+        .desktop-icon {
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+        }
+        .desktop-icon-img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            transition: transform 0.2s ease;
+        }
+        .desktop-icon:active .desktop-icon-img {
+            transform: scale(0.9);
+        }
+        .desktop-icon-text {
+            color: white;
+            font-size: 0.75rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-weight: 500;
+            word-wrap: break-word;
+            width: 100%;
+        }
+
+        /* =========================================
+           WINDOW SYSTEM (Glassmorphism & Physics)
+           ========================================= */
+        .os-window {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border-light);
+            border-left: 1px solid var(--glass-border-light);
+            border-right: 1px solid var(--glass-border-dark);
+            border-bottom: 1px solid var(--glass-border-dark);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform, opacity, left, top, width, height;
+        }
+        .os-window.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+        }
+        .os-window.minimized {
+            opacity: 0;
+            transform: scale(0.5) translateY(50vh);
+            pointer-events: none;
+        }
+        .os-window.maximized {
+            inset: 0 !important;
+            width: 100vw !important;
+            height: calc(100vh - 48px) !important; /* taskbar height */
+            border-radius: 0;
+            transform: none !important;
+        }
+        
+        .window-header {
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            cursor: grab;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .window-header:active {
+            cursor: grabbing;
+        }
+        .window-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.9);
+        }
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .win-btn {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: filter 0.2s;
+        }
+        .win-btn:hover { filter: brightness(1.2); }
+        .win-btn-close { background: #ff5f56; }
+        .win-btn-min { background: #ffbd2e; }
+        .win-btn-max { background: #27c93f; }
+        .win-btn i {
+            font-size: 8px;
+            color: rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .window-controls:hover .win-btn i { opacity: 1; }
+
+        .window-content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            background: rgba(10, 10, 15, 0.4);
+        }
+
+        /* Resizers */
+        .resizer {
+            position: absolute;
+            z-index: 10;
+        }
+        .resizer-r { right: 0; top: 0; width: 5px; height: 100%; cursor: ew-resize; }
+        .resizer-b { bottom: 0; left: 0; width: 100%; height: 5px; cursor: ns-resize; }
+        .resizer-br { right: 0; bottom: 0; width: 10px; height: 10px; cursor: nwse-resize; z-index: 11; }
+
+        /* =========================================
+           TASKBAR & START MENU
+           ========================================= */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 48px;
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: var(--z-taskbar);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        }
+
+        #start-btn {
+            height: 36px;
+            width: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+        #start-btn:hover, #start-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+        #start-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: url(#gradient-m);
+        }
+
+        #taskbar-apps {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .taskbar-item {
+            height: 36px;
+            width: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .taskbar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .taskbar-item.open {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 2px solid var(--os-accent1);
+            border-radius: 6px 6px 0 0;
+        }
+        .taskbar-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: 2px solid var(--os-accent4);
+        }
+        .taskbar-item img {
+            width: 24px;
+            height: 24px;
+        }
+
+        #sys-tray {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-right: 10px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+        }
+        .tray-icon {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .tray-icon:hover { color: white; }
+        #clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        #clock-container:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        #clock-time { font-weight: 600; }
+        #clock-date { font-size: 0.7rem; color: rgba(255,255,255,0.6); }
+
+        /* Start Menu */
+        #start-menu {
+            position: fixed;
+            bottom: 60px;
+            left: 10px;
+            width: 320px;
+            height: 500px;
+            background: rgba(20, 20, 30, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            z-index: var(--z-start-menu);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+        #start-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .sm-header {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0,242,254,0.1), rgba(127,0,255,0.1));
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sm-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+        }
+        .sm-user-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 2px; }
+        .sm-user-info p { font-size: 0.75rem; color: rgba(255,255,255,0.6); }
+        
+        .sm-body {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .sm-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        .sm-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .sm-app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .sm-app:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .sm-app img { width: 32px; height: 32px; }
+        .sm-app span { font-size: 0.7rem; text-align: center; }
+
+        .sm-footer {
+            height: 50px;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 15px;
+        }
+        .sm-power {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sm-power:hover { background: rgba(255,50,50,0.2); color: #ff5f56; }
+
+        /* =========================================
+           APP CONTENT SPECIFIC STYLES
+           ========================================= */
+        
+        /* 1. Terminal / About Me */
+        .terminal-wrapper {
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #a9b7c6;
+            line-height: 1.5;
+            height: 100%;
+        }
+        .term-kw { color: #cc7832; }
+        .term-str { color: #6a8759; }
+        .term-fn { color: #ffc66d; }
+        .term-var { color: #9876aa; }
+        .term-comment { color: #808080; font-style: italic; }
+        .term-cmd { color: #00f2fe; }
+        .term-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #fff;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        /* 2. FreeCodeCamp Learning Hub */
+        .fcc-hub {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #0a0a23; /* FCC dark bg */
+            color: #f5f6f7;
+        }
+        .fcc-header {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .fcc-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: #f5f6f7;
+            color: #0a0a23;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            margin-top: 20px;
+            border: 2px solid transparent;
+        }
+        .fcc-btn:hover {
+            background: transparent;
+            color: #f5f6f7;
+            border-color: #f5f6f7;
+            box-shadow: 0 0 20px rgba(245,246,247,0.2);
+        }
+        .fcc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .fcc-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .fcc-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        /* 3. Tarot Tarot_Deck */
+        .tarot-layout {
+            padding: 30px;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            overflow-y: auto;
+        }
+        .tarot-title {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            color: var(--tarot-gold);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        .tarot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            perspective: 1500px;
+        }
+        .tarot-card {
+            height: 380px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .tarot-card.flipped { transform: rotateY(180deg); }
+        .tarot-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--tarot-dark), #000);
+        }
+        .tarot-back { transform: rotateY(180deg); }
+        .tarot-face-inner {
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .tarot-number { font-family: serif; color: var(--tarot-gold); margin-bottom: 10px; }
+        .tarot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #fff; margin-bottom: 15px; }
+        .tarot-desc { font-size: 0.75rem; color: #aaa; line-height: 1.5; }
+
+        /* 4. Science & Civics Notes */
+        .science-layout {
+            display: flex;
+            height: 100%;
+            background: #111;
+        }
+        .sci-sidebar {
+            width: 250px;
+            background: rgba(255,255,255,0.02);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sci-tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sci-tab:hover { background: rgba(255,255,255,0.05); }
+        .sci-tab.active { background: rgba(0,242,254,0.1); border-left: 3px solid #00f2fe; }
+        .sci-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        .sci-pane { display: none; animation: fadeIn 0.3s; }
+        .sci-pane.active { display: block; }
+        .formula-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            color: #00f2fe;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        .civic-article {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #d11124; /* Indo Red */
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* 5. Ninjago Archive */
+        .ninjago-layout {
+            height: 100%;
+            background: linear-gradient(45deg, #111, #222);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .ninja-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .ninja-card {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .ninja-header {
+            height: 100px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
+        }
+        .ninja-header::before {
+            content: ''; position: absolute; inset: 0; opacity: 0.3;
+        }
+        .ninja-kai .ninja-header::before { background: radial-gradient(circle, #ff416c, #ff4b2b); }
+        .ninja-jay .ninja-header::before { background: radial-gradient(circle, #00f2fe, #4facfe); }
+        .ninja-cole .ninja-header::before { background: radial-gradient(circle, #434343, #000000); }
+        .ninja-zane .ninja-header::before { background: radial-gradient(circle, #e0eafc, #cfdef3); }
+        .ninja-lloyd .ninja-header::before { background: radial-gradient(circle, #11998e, #38ef7d); }
+        
+        .ninja-name { font-size: 1.5rem; font-weight: 800; color: white; position: relative; z-index: 2; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .ninja-element { position: absolute; top: 15px; right: 15px; font-size: 2rem; opacity: 0.8; z-index: 2; }
+        .ninja-body { padding: 20px; font-size: 0.85rem; color: #ccc; line-height: 1.6; }
+
+
+        /* =========================================
+           GLOBAL ANIMATIONS
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 3D Tilt Utility (Applied via JS) */
+        .tilt-element {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+        .tilt-inner { transform: translateZ(30px); }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Massive invisible SVG block to define gradients and complex patterns used across the OS -->
+    <svg width="0" height="0" style="position:absolute; width:0; height:0;">
+        <defs>
+            <linearGradient id="gradient-m" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#7f00ff" />
+            </linearGradient>
+            <!-- Intricate Abstract Background Pattern -->
+            <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                <path d="M10 10 L 20 20 L 50 20 L 60 10" stroke="rgba(255,255,255,0.03)" stroke-width="1" fill="none"/>
+                <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.05)"/>
+                <circle cx="60" cy="10" r="2" fill="rgba(255,255,255,0.05)"/>
+                <path d="M40 80 L 50 90 L 80 90 L 90 80" stroke="rgba(255,255,255,0.03)" stroke-width="1" fill="none"/>
+                <circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.05)"/>
+                <path d="M20 50 L 80 50" stroke="rgba(255,255,255,0.02)" stroke-width="1" fill="none" stroke-dasharray="4,4"/>
+            </pattern>
+        </defs>
+    </svg>
+
+    <!-- Boot Screen Overlay -->
+    <div id="boot-screen">
+        <div class="boot-logo-container">
+            <div class="boot-ring"></div>
+            <div class="boot-ring"></div>
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display', serif; font-size: 2.5rem; font-weight:bold; background: -webkit-linear-gradient(#00f2fe, #e100ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">M</div>
+        </div>
+        <div class="boot-text">MACKENZIE_OS_v26</div>
+        <div style="color: #666; margin-top: 10px; font-family: monospace; font-size: 0.8rem;" id="boot-log">Initializing core systems...</div>
+    </div>
+
+    <!-- Main Desktop Area -->
+    <div id="desktop">
+        
+        <!-- Canvases for graphics engines -->
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="cursor-canvas"></canvas>
+        
+        <!-- Desktop Icon Grid -->
+        <div id="icon-grid">
+            <!-- Icon 1: About -->
+            <div class="desktop-icon tilt-element" data-target="win-about" ondblclick="WindowManager.openWindow('win-about')">
+                <svg class="desktop-icon-img tilt-inner" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="12" width="48" height="40" rx="4" fill="#2d2d3d" stroke="#5d5d7d" stroke-width="2"/>
+                    <path d="M16 24L24 32L16 40" stroke="#00f2fe" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="28" y1="40" x2="40" y2="40" stroke="#7f00ff" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <span class="desktop-icon-text">About.exe</span>
+            </div>
+
+            <!-- Icon 2: FreeCodeCamp Hub -->
+            <div class="desktop-icon tilt-element" data-target="win-fcc" ondblclick="WindowManager.openWindow('win-fcc')">
+                <svg class="desktop-icon-img tilt-inner" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="4" width="56" height="56" rx="12" fill="#0a0a23" stroke="#f5f6f7" stroke-width="2"/>
+                    <path d="M40 20C40 20 44 24 44 32C44 40 40 44 40 44" stroke="#f5f6f7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M24 20C24 20 20 24 20 32C20 40 24 44 24 44" stroke="#f5f6f7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="28" y="30" width="8" height="4" fill="#f5f6f7"/>
+                </svg>
+                <span class="desktop-icon-text">Learn_Hub</span>
+            </div>
+
+            <!-- Icon 3: Ninjago Archive -->
+            <div class="desktop-icon tilt-element" data-target="win-ninja" ondblclick="WindowManager.openWindow('win-ninja')">
+                <svg class="desktop-icon-img tilt-inner" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="28" fill="#d11124" stroke="#ff416c" stroke-width="2"/>
+                    <path d="M32 12C20 12 16 24 16 24C16 24 24 20 32 20C40 20 48 24 48 24C48 24 44 12 32 12Z" fill="#ffd700"/>
+                    <circle cx="26" cy="22" r="2" fill="#000"/>
+                    <circle cx="38" cy="22" r="2" fill="#000"/>
+                    <path d="M16 40C16 40 24 44 32 44C40 44 48 40 48 40V32H16V40Z" fill="#111"/>
+                </svg>
+                <span class="desktop-icon-text">Ninjago_Lore</span>
+            </div>
+
+            <!-- Icon 4: Tarot Deck -->
+            <div class="desktop-icon tilt-element" data-target="win-tarot" ondblclick="WindowManager.openWindow('win-tarot')">
+                <svg class="desktop-icon-img tilt-inner" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="16" y="8" width="32" height="48" rx="4" fill="#1a0b2e" stroke="#d4af37" stroke-width="2"/>
+                    <path d="M32 16L40 24L32 32L24 24L32 16Z" fill="#d4af37"/>
+                    <circle cx="32" cy="40" r="4" fill="#d4af37"/>
+                </svg>
+                <span class="desktop-icon-text">Tarot_Deck</span>
+            </div>
+
+            <!-- Icon 5: Sciences -->
+            <div class="desktop-icon tilt-element" data-target="win-science" ondblclick="WindowManager.openWindow('win-science')">
+                <svg class="desktop-icon-img tilt-inner" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32 12V52M12 32H52" stroke="#4facfe" stroke-width="2"/>
+                    <ellipse cx="32" cy="32" rx="24" ry="8" transform="rotate(45 32 32)" stroke="#00f2fe" stroke-width="2"/>
+                    <ellipse cx="32" cy="32" rx="24" ry="8" transform="rotate(-45 32 32)" stroke="#00f2fe" stroke-width="2"/>
+                    <circle cx="32" cy="32" r="6" fill="#7f00ff"/>
+                </svg>
+                <span class="desktop-icon-text">Sciences.db</span>
+            </div>
+        </div>
+
+        <!-- Window 1: About Me (Terminal Style) -->
+        <div id="win-about" class="os-window" style="width: 600px; height: 400px; top: 10%; left: 10%;">
+            <div class="window-header">
+                <div class="window-title"><i class="fas fa-terminal"></i> root@mackenzie:~</div>
+                <div class="window-controls">
+                    <button class="win-btn win-btn-min" onclick="WindowManager.minimizeWindow('win-about')"><i class="fas fa-minus"></i></button>
+                    <button class="win-btn win-btn-max" onclick="WindowManager.maximizeWindow('win-about')"><i class="fas fa-expand"></i></button>
+                    <button class="win-btn win-btn-close" onclick="WindowManager.closeWindow('win-about')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="window-content selectable">
+                <div class="terminal-wrapper" id="terminal-content">
+                    <!-- JS will inject typewriter text here -->
+                </div>
+            </div>
+            <!-- Resizers -->
+            <div class="resizer resizer-r"></div><div class="resizer resizer-b"></div><div class="resizer resizer-br"></div>
+        </div>
+
+        <!-- Window 2: FreeCodeCamp Learning Hub -->
+        <div id="win-fcc" class="os-window" style="width: 800px; height: 550px; top: 15%; left: 15%;">
+            <div class="window-header" style="background: #0a0a23; border-bottom: 1px solid #333;">
+                <div class="window-title"><i class="fab fa-free-code-camp"></i> Learning_Hub.exe</div>
+                <div class="window-controls">
+                    <button class="win-btn win-btn-min" onclick="WindowManager.minimizeWindow('win-fcc')"><i class="fas fa-minus"></i></button>
+                    <button class="win-btn win-btn-max" onclick="WindowManager.maximizeWindow('win-fcc')"><i class="fas fa-expand"></i></button>
+                    <button class="win-btn win-btn-close" onclick="WindowManager.closeWindow('win-fcc')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="window-content selectable">
+                <div class="fcc-hub">
+                    <div class="fcc-header">
+                        <i class="fab fa-free-code-camp" style="font-size: 4rem; margin-bottom:15px;"></i>
+                        <h1 style="font-size: 2rem; font-weight:800;">FreeCodeCamp Dedication</h1>
+                        <p style="color: #d0d0d5; max-width: 600px; margin: 15px auto;">
+                            My passion for learning coding languages finds its true north here. An endless repository of logical challenges, structural design, and algorithm mastery.
+                        </p>
+                        <a href="https://www.freecodecamp.org/" target="_blank" rel="noopener noreferrer" class="fcc-btn">
+                            Access Mainframe <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                    <div class="fcc-grid" id="fcc-course-grid">
+                        <!-- JS injected courses -->
+                    </div>
+                </div>
+            </div>
+            <div class="resizer resizer-r"></div><div class="resizer resizer-b"></div><div class="resizer resizer-br"></div>
+        </div>
+
+        <!-- Window 3: Ninjago Archive -->
+        <div id="win-ninja" class="os-window" style="width: 900px; height: 600px; top: 20%; left: 5%;">
+            <div class="window-header" style="background: rgba(209, 17, 36, 0.4);">
+                <div class="window-title"><i class="fas fa-dragon"></i> Ninjago_Archive.db</div>
+                <div class="window-controls">
+                    <button class="win-btn win-btn-min" onclick="WindowManager.minimizeWindow('win-ninja')"><i class="fas fa-minus"></i></button>
+                    <button class="win-btn win-btn-max" onclick="WindowManager.maximizeWindow('win-ninja')"><i class="fas fa-expand"></i></button>
+                    <button class="win-btn win-btn-close" onclick="WindowManager.closeWindow('win-ninja')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="window-content selectable">
+                <div class="ninjago-layout">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="font-size: 2.5rem; font-weight:900; text-transform:uppercase; letter-spacing:4px; text-shadow: 0 0 20px rgba(209,17,36,0.6);">Masters of Spinjitzu</h2>
+                        <p style="color: #aaa;">Deep lore analysis and psychological profiles.</p>
+                    </div>
+                    <div class="ninja-grid" id="ninja-grid-container">
+                        <!-- JS Injected Ninja Profiles -->
+                    </div>
+                </div>
+            </div>
+            <div class="resizer resizer-r"></div><div class="resizer resizer-b"></div><div class="resizer resizer-br"></div>
+        </div>
+
+        <!-- Window 4: Tarot Deck -->
+        <div id="win-tarot" class="os-window" style="width: 850px; height: 650px; top: 5%; left: 25%;">
+            <div class="window-header" style="background: #1a0b2e;">
+                <div class="window-title" style="color:#d4af37;"><i class="fas fa-star-and-crescent"></i> Tarot_Esoterica.sys</div>
+                <div class="window-controls">
+                    <button class="win-btn win-btn-min" onclick="WindowManager.minimizeWindow('win-tarot')"><i class="fas fa-minus"></i></button>
+                    <button class="win-btn win-btn-max" onclick="WindowManager.maximizeWindow('win-tarot')"><i class="fas fa-expand"></i></button>
+                    <button class="win-btn win-btn-close" onclick="WindowManager.closeWindow('win-tarot')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="window-content selectable">
+                <div class="tarot-layout">
+                    <h2 class="tarot-title">The Digital Arcana</h2>
+                    <p style="text-align: center; color: #aaa; margin-bottom: 40px; font-style: italic;">
+                        Click cards to reveal the algorithm of fate.
+                    </p>
+                    <div class="tarot-grid" id="tarot-grid-container">
+                        <!-- JS Injected Tarot Cards -->
+                    </div>
+                </div>
+            </div>
+            <div class="resizer resizer-r"></div><div class="resizer resizer-b"></div><div class="resizer resizer-br"></div>
+        </div>
+
+        <!-- Window 5: Sciences & Civics -->
+        <div id="win-science" class="os-window" style="width: 950px; height: 600px; top: 12%; left: 18%;">
+            <div class="window-header" style="background: rgba(0, 242, 254, 0.2);">
+                <div class="window-title"><i class="fas fa-microscope"></i> Empirical_Data.log</div>
+                <div class="window-controls">
+                    <button class="win-btn win-btn-min" onclick="WindowManager.minimizeWindow('win-science')"><i class="fas fa-minus"></i></button>
+                    <button class="win-btn win-btn-max" onclick="WindowManager.maximizeWindow('win-science')"><i class="fas fa-expand"></i></button>
+                    <button class="win-btn win-btn-close" onclick="WindowManager.closeWindow('win-science')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="window-content selectable">
+                <div class="science-layout">
+                    <!-- Sidebar Tabs -->
+                    <div class="sci-sidebar">
+                        <div class="sci-tab active" onclick="switchSciTab('physics', this)">
+                            <i class="fas fa-bolt text-yellow-400"></i> Electrical Physics
+                        </div>
+                        <div class="sci-tab" onclick="switchSciTab('biology', this)">
+                            <i class="fas fa-dna text-green-400"></i> Biological Systems
+                        </div>
+                        <div class="sci-tab" onclick="switchSciTab('civics', this)">
+                            <i class="fas fa-landmark text-red-500"></i> Indo Civics (UUD 45)
+                        </div>
+                    </div>
+                    <!-- Content Area -->
+                    <div class="sci-content" id="sci-content-area">
+                        <!-- JS Injected Science Notes -->
+                    </div>
+                </div>
+            </div>
+            <div class="resizer resizer-r"></div><div class="resizer resizer-b"></div><div class="resizer resizer-br"></div>
+        </div>
+
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar">
+        <button id="start-btn" onclick="toggleStartMenu(event)">
+            <svg viewBox="0 0 100 100">
+                <rect x="10" y="10" width="35" height="35" rx="4"/>
+                <rect x="55" y="10" width="35" height="35" rx="4"/>
+                <rect x="10" y="55" width="35" height="35" rx="4"/>
+                <rect x="55" y="55" width="35" height="35" rx="4"/>
+            </svg>
+        </button>
+        
+        <div id="taskbar-apps">
+            <!-- JS will inject active app icons here -->
+        </div>
+        
+        <div id="sys-tray">
+            <i class="fas fa-wifi tray-icon"></i>
+            <i class="fas fa-volume-up tray-icon"></i>
+            <i class="fas fa-battery-full tray-icon"></i>
+            <div id="clock-container">
+                <div id="clock-time">00:00</div>
+                <div id="clock-date">MM/DD/YYYY</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu">
+        <div class="sm-header">
+            <div class="sm-avatar">M</div>
+            <div class="sm-user-info">
+                <h3>Mackenzie Birly Massie</h3>
+                <p>Level 26 Architect | Admin</p>
+            </div>
+        </div>
+        <div class="sm-body">
+            <div class="sm-section-title">Pinned Applications</div>
+            <div class="sm-grid">
+                <div class="sm-app" onclick="WindowManager.openWindow('win-about'); toggleStartMenu();">
+                    <i class="fas fa-terminal text-2xl text-os-accent1"></i>
+                    <span>Terminal</span>
+                </div>
+                <div class="sm-app" onclick="WindowManager.openWindow('win-fcc'); toggleStartMenu();">
+                    <i class="fab fa-free-code-camp text-2xl text-white"></i>
+                    <span>Learn Code</span>
+                </div>
+                <div class="sm-app" onclick="WindowManager.openWindow('win-ninja'); toggleStartMenu();">
+                    <i class="fas fa-dragon text-2xl text-red-500"></i>
+                    <span>Ninjago</span>
+                </div>
+                <div class="sm-app" onclick="WindowManager.openWindow('win-tarot'); toggleStartMenu();">
+                    <i class="fas fa-moon text-2xl text-yellow-500"></i>
+                    <span>Tarot</span>
+                </div>
+                <div class="sm-app" onclick="WindowManager.openWindow('win-science'); toggleStartMenu();">
+                    <i class="fas fa-flask text-2xl text-green-400"></i>
+                    <span>Sciences</span>
+                </div>
+            </div>
+            
+            <div class="sm-section-title" style="margin-top:20px;">System Stats</div>
+            <div style="font-family: monospace; font-size: 0.75rem; color: #888; padding: 0 10px;">
+                <p>CPU: Intellectual Curiosity 99%</p>
+                <p>RAM: Syntax Memory Allocation</p>
+                <p>NET: Connected to FreeCodeCamp</p>
+            </div>
+        </div>
+        <div class="sm-footer">
+            <div class="sm-power" onclick="location.reload()">
+                <i class="fas fa-power-off"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ARCHIVE: Massive embedded JSON structures for deep lore and technical notes ---
+        
+        const OS_DATA = {
+            profile: {
+                name: "Mackenzie Birly Massie",
+                age: 26,
+                title: "Code Learner & System Architect",
+                status: "Online & Compiling"
+            },
+            tarot: [
+                {
+                    id: "nine-wands",
+                    number: "IX",
+                    name: "Nine of Wands",
+                    icon: "fa-grip-lines-vertical",
+                    desc: "Resilience, persistence, boundaries. In the context of coding, this represents the stamina required to debug complex systems. You are close to completion, battered but not broken by syntax errors. Stand your ground.",
+                    color: "#d4af37"
+                },
+                {
+                    id: "magician",
+                    number: "I",
+                    name: "The Magician",
+                    icon: "fa-magic",
+                    desc: "Manifestation, resourcefulness, power, inspired action. The ultimate archetype of the programmer. Taking the raw elements (variables, logic, loops) and transforming them into a tangible reality on screen.",
+                    color: "#ff00ff"
+                },
+                {
+                    id: "emperor",
+                    number: "IV",
+                    name: "The Emperor",
+                    icon: "fa-chess-king",
+                    desc: "Authority, establishment, structure, a father figure. Symbolizes strong architectural design patterns in software engineering. Object-Oriented paradigms, strict typing, and maintaining a robust, unyielding codebase.",
+                    color: "#ff3333"
+                },
+                {
+                    id: "king-swords",
+                    number: "XIV",
+                    name: "King of Swords",
+                    icon: "fa-khanda",
+                    desc: "Clear thinking, intellectual power, authority, truth. Represents the pure logic and analytical mindset required to construct optimal algorithms. Cutting through the fluff with Big-O notation efficiency.",
+                    color: "#aaccff"
+                },
+                {
+                    id: "lovers",
+                    number: "VI",
+                    name: "The Lovers",
+                    icon: "fa-heart",
+                    desc: "Love, harmony, relationships, values alignment, choices. In a technical sense, it's the harmony between Frontend and Backend, the perfect API handshake, and the synthesis of design and logic.",
+                    color: "#ff99cc"
+                }
+            ],
+            ninjago: [
+                {
+                    id: "kai",
+                    name: "Kai",
+                    element: "Fire",
+                    icon: "fa-fire",
+                    colorClass: "ninja-kai",
+                    lore: "The Master of Fire. Hot-headed but fiercely loyal. His journey represents the volatile nature of passion and how it must be harnessed toforge strong bonds. His code equivalent is rapid prototyping—explosive energy that needs architectural discipline."
+                },
+                {
+                    id: "jay",
+                    name: "Jay Walker",
+                    element: "Lightning",
+                    icon: "fa-bolt",
+                    colorClass: "ninja-jay",
+                    lore: "The Master of Lightning. Inventive, quick-witted, and highly energetic. He bridges the gap between ancient elemental power and modern technology. His coding style? Asynchronous JavaScript and high-speed data streams."
+                },
+                {
+                    id: "cole",
+                    name: "Cole",
+                    element: "Earth",
+                    icon: "fa-mountain",
+                    colorClass: "ninja-cole",
+                    lore: "The Master of Earth. Solid, dependable, the foundation of the team. He carries the weight of responsibility. Represents the Backend Infrastructure, the database schematics, the unwavering rock of a full-stack application."
+                },
+                {
+                    id: "zane",
+                    name: "Zane",
+                    element: "Ice",
+                    icon: "fa-snowflake",
+                    colorClass: "ninja-zane",
+                    lore: "The Master of Ice. A Nindroid capable of processing vast amounts of data without losing his humanity. The literal embodiment of machine logic finding a soul. Represents algorithmic perfection, AI, and cold, hard computation."
+                },
+                {
+                    id: "lloyd",
+                    name: "Lloyd Garmadon",
+                    element: "Energy",
+                    icon: "fa-dragon",
+                    colorClass: "ninja-lloyd",
+                    lore: "The Green Ninja. The conduit of raw, ultimate power. Represents the full compilation of all elements into a cohesive, unstoppable force. The 'Main' function where all modules converge."
+                }
+            ],
+            sciences: {
+                physics: `
+                    <h3 style="font-size:1.5rem; color:#00f2fe; margin-bottom: 10px;">Electrical Physics & Electromagnetism</h3>
+                    <p style="color:#ccc; line-height:1.6; margin-bottom:20px;">
+                        The flow of electrons mirrors the flow of data. Understanding the physical constraints of hardware is essential for appreciating software.
+                    </p>
+                    <div class="formula-box">
+                        <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">Ohm's Law (V-I Relationship)</div>
+                        V = I × R
+                    </div>
+                    <p style="color:#ccc; font-size:0.9rem; margin-bottom:20px;">Voltage (V) is directly proportional to Current (I) given a constant Resistance (R). This linear graph is the fundamental debugging tool of hardware circuits.</p>
+                    
+                    <div class="formula-box">
+                        <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">Parallel Resistance</div>
+                        1/R<sub>total</sub> = 1/R<sub>1</sub> + 1/R<sub>2</sub> + ... + 1/R<sub>n</sub>
+                    </div>
+                    <p style="color:#ccc; font-size:0.9rem; margin-bottom:20px;">When components are in parallel, the total resistance decreases. Think of it as multi-threading in processors—more paths mean less bottlenecking.</p>
+
+                    <div class="formula-box">
+                        <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">Coulomb's Law</div>
+                        F = k × (|q<sub>1</sub> × q<sub>2</sub>|) / r²
+                    </div>
+                    <p style="color:#ccc; font-size:0.9rem; margin-bottom:20px;">The electrostatic force (F) between two point charges (q1, q2) is directly proportional to the product of their magnitudes and inversely proportional to the square of the distance (r) between them.</p>
+                `,
+                biology: `
+                    <h3 style="font-size:1.5rem; color:#2ecc71; margin-bottom: 10px;">Biological Systems & Genetics</h3>
+                    <p style="color:#ccc; line-height:1.6; margin-bottom:20px;">
+                        Biology is the oldest, most complex legacy codebase in existence. DNA is a base-4 programming language (A, T, C, G) that compiles into proteins.
+                    </p>
+                    <div style="background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:15px; margin-bottom:15px;">
+                        <strong style="color:#2ecc71">Central Dogma of Molecular Biology:</strong><br>
+                        DNA -> RNA -> Protein.<br>
+                        (Storage) -> (Compilation/Transfer) -> (Execution).
+                    </div>
+                    <p style="color:#ccc; font-size:0.9rem; line-height:1.6;">
+                        Understanding cellular mitosis and meiosis provides insight into recursive functions and object cloning. The immune system is essentially a highly advanced, evolutionary antivirus software running continuous heuristic scans.
+                    </p>
+                `,
+                civics: `
+                    <h3 style="font-size:1.5rem; color:#d11124; margin-bottom: 10px;">Indonesian Civic Studies (PKN)</h3>
+                    <p style="color:#ccc; line-height:1.6; margin-bottom:20px;">
+                        The sociopolitical algorithms that govern a nation. A constitution acts as the root configuration file for a society.
+                    </p>
+                    
+                    <div class="civic-article">
+                        <strong style="color:white; font-size:1.1rem;">UUD 1945 - Article 28E</strong>
+                        <p style="color:#aaa; font-size:0.9rem; margin-top:10px;">
+                            (1) Every person is free to choose and practice the religion of their choice...<br>
+                            (2) Every person has the right to the freedom to believe in their faith...<br>
+                            (3) Every person has the right to the freedom of association, assembly, and expression of opinion.
+                        </p>
+                    </div>
+
+                    <div class="civic-article">
+                        <strong style="color:white; font-size:1.1rem;">UUD 1945 - Article 28F</strong>
+                        <p style="color:#aaa; font-size:0.9rem; margin-top:10px;">
+                            Every person has the right to communicate and obtain information to develop their personal and social environment, and has the right to seek, obtain, possess, store, process, and convey information using all available types of channels. <i>(The legal basis for digital freedom and coding access).</i>
+                        </p>
+                    </div>
+
+                    <div class="civic-article">
+                        <strong style="color:white; font-size:1.1rem;">UU No. 9 Tahun 1998</strong>
+                        <p style="color:#aaa; font-size:0.9rem; margin-top:10px;">
+                            Concerning Freedom of Expression in Public. Establishes the parameters for democratic discourse, protests, and the legal framework for voicing systemic bugs in societal governance.
+                        </p>
+                    </div>
+                `
+            }
+        };
+
+        
+        class OSWindowManager {
+            constructor() {
+                this.windows = {};
+                this.activeWindow = null;
+                this.zIndexBase = 100;
+                
+                // Initialize draggable logic for all headers
+                document.querySelectorAll('.os-window').forEach(win => {
+                    this.windows[win.id] = {
+                        element: win,
+                        isOpen: false,
+                        isMinimized: false,
+                        isMaximized: false,
+                        prevBounds: null
+                    };
+                    
+                    const header = win.querySelector('.window-header');
+                    this.makeDraggable(win, header);
+                    
+                    // Focus on mousedown
+                    win.addEventListener('mousedown', () => this.focusWindow(win.id));
+                });
+            }
+
+            openWindow(id) {
+                const winData = this.windows[id];
+                if (!winData) return;
+                
+                if (winData.isMinimized) {
+                    winData.element.classList.remove('minimized');
+                    winData.isMinimized = false;
+                } else if (!winData.isOpen) {
+                    winData.element.classList.add('active');
+                    winData.isOpen = true;
+                }
+                
+                this.focusWindow(id);
+                this.updateTaskbar();
+            }
+
+            closeWindow(id) {
+                const winData = this.windows[id];
+                if (!winData) return;
+                
+                winData.element.classList.remove('active');
+                winData.element.classList.remove('maximized');
+                winData.element.classList.remove('minimized');
+                winData.isOpen = false;
+                winData.isMinimized = false;
+                winData.isMaximized = false;
+                
+                this.updateTaskbar();
+            }
+
+            minimizeWindow(id) {
+                const winData = this.windows[id];
+                if (!winData) return;
+                
+                winData.element.classList.add('minimized');
+                winData.isMinimized = true;
+                
+                this.updateTaskbar();
+            }
+
+            maximizeWindow(id) {
+                const winData = this.windows[id];
+                if (!winData) return;
+                
+                if (winData.isMaximized) {
+                    winData.element.classList.remove('maximized');
+                    winData.isMaximized = false;
+                } else {
+                    winData.element.classList.add('maximized');
+                    winData.isMaximized = true;
+                }
+                this.focusWindow(id);
+            }
+
+            focusWindow(id) {
+                const win = this.windows[id];
+                if (!win || !win.isOpen) return;
+                
+                this.zIndexBase++;
+                win.element.style.zIndex = this.zIndexBase;
+                this.activeWindow = id;
+                
+                // Update taskbar active state
+                document.querySelectorAll('.taskbar-item').forEach(item => item.classList.remove('active'));
+                const tbItem = document.getElementById(`tb-${id}`);
+                if (tbItem) tbItem.classList.add('active');
+            }
+
+            updateTaskbar() {
+                const tbContainer = document.getElementById('taskbar-apps');
+                tbContainer.innerHTML = '';
+                
+                for (const [id, data] of Object.entries(this.windows)) {
+                    if (data.isOpen) {
+                        const iconHtml = document.querySelector(`.desktop-icon[data-target="${id}"] svg`).outerHTML;
+                        const title = document.querySelector(`.desktop-icon[data-target="${id}"] .desktop-icon-text`).innerText;
+                        
+                        const div = document.createElement('div');
+                        div.className = `taskbar-item open ${this.activeWindow === id && !data.isMinimized ? 'active' : ''}`;
+                        div.id = `tb-${id}`;
+                        div.title = title;
+                        // Strip classes and resize svg for taskbar
+                        const svgStr = iconHtml.replace(/class="[^"]*"/, '').replace(/width="[^"]*"/, 'width="24"').replace(/height="[^"]*"/, 'height="24"');
+                        div.innerHTML = svgStr;
+                        
+                        div.onclick = () => {
+                            if (data.isMinimized) {
+                                this.openWindow(id);
+                            } else if (this.activeWindow === id) {
+                                this.minimizeWindow(id);
+                            } else {
+                                this.focusWindow(id);
+                            }
+                        };
+                        tbContainer.appendChild(div);
+                    }
+                }
+            }
+
+            makeDraggable(element, handle) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                
+                handle.onmousedown = (e) => {
+                    e.preventDefault();
+                    if (this.windows[element.id].isMaximized) return; // Don't drag if maximized
+                    
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = elementDrag;
+                };
+
+                function elementDrag(e) {
+                    e.preventDefault();
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    
+                    let newTop = element.offsetTop - pos2;
+                    let newLeft = element.offsetLeft - pos1;
+                    
+                    // Basic bounds checking
+                    if(newTop < 0) newTop = 0;
+                    if(newTop > window.innerHeight - 80) newTop = window.innerHeight - 80;
+                    
+                    element.style.top = newTop + "px";
+                    element.style.left = newLeft + "px";
+                }
+
+                function closeDragElement() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            }
+        }
+
+        const WindowManager = new OSWindowManager();
+
+        
+        function injectContent() {
+            // 1. Terminal / About (Typewriter)
+            const terminalCode = [
+                `<span class="term-comment">// System Initialize: Profile Check</span>`,
+                `<span class="term-kw">const</span> <span class="term-var">user</span> = {`,
+                `  <span class="term-str">name</span>: <span class="term-str">"${OS_DATA.profile.name}"</span>,`,
+                `  <span class="term-str">age</span>: <span class="term-var">${OS_DATA.profile.age}</span>,`,
+                `  <span class="term-str">passion</span>: <span class="term-str">"Learning Code Languages"</span>`,
+                `};`,
+                ``,
+                `<span class="term-kw">function</span> <span class="term-fn">analyzeSubject</span>() {`,
+                `  <span class="term-var">console</span>.<span class="term-fn">log</span>(<span class="term-str">"Initiating deep dive into logic structures..."</span>);`,
+                `  <span class="term-kw">return</span> <span class="term-str">"Ready for input."</span>;`,
+                `}`,
+                ``,
+                `<span class="term-cmd">mackenzie@os</span>:~$ node start.js`,
+                `> Compiling thoughts...`,
+                `> Connection to FreeCodeCamp: <span style="color:#27c93f">ESTABLISHED</span>`,
+                `<span class="term-cmd">mackenzie@os</span>:~$ <span class="term-cursor"></span>`
+            ];
+            
+            const termEl = document.getElementById('terminal-content');
+            let termHtml = '';
+            // For sake of performance in this massive file, just render immediately, but keep cursor blinking
+            terminalCode.forEach(line => { termHtml += `<div>${line}</div>`; });
+            termEl.innerHTML = termHtml;
+
+            // 2. FreeCodeCamp Courses Mock
+            const fccGrid = document.getElementById('fcc-course-grid');
+            const fccCourses = ['Responsive Web Design', 'JS Algorithms & Data Structures', 'Front End Development Libraries', 'Data Visualization', 'Back End Development and APIs'];
+            fccCourses.forEach(course => {
+                fccGrid.innerHTML += `
+                    <div class="fcc-card">
+                        <i class="fab fa-free-code-camp" style="font-size:2rem; margin-bottom:15px; color:#fff;"></i>
+                        <h3 style="font-weight:600; margin-bottom:10px;">${course}</h3>
+                        <p style="font-size:0.8rem; color:#aaa;">Mastering the core principles to build robust applications.</p>
+                        <div style="margin-top:15px; width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px;">
+                            <div style="width:${Math.random()*60 + 20}%; height:100%; background:#fff; border-radius:2px;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 3. Ninjago Archive
+            const ninjaGrid = document.getElementById('ninja-grid-container');
+            OS_DATA.ninjago.forEach(ninja => {
+                ninjaGrid.innerHTML += `
+                    <div class="ninja-card ${ninja.colorClass}">
+                        <div class="ninja-header">
+                            <i class="fas ${ninja.icon} ninja-element"></i>
+                            <div class="ninja-name">${ninja.name}</div>
+                        </div>
+                        <div class="ninja-body">
+                            <p>${ninja.lore}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 4. Tarot Deck
+            const tarotGrid = document.getElementById('tarot-grid-container');
+            OS_DATA.tarot.forEach((card, index) => {
+                tarotGrid.innerHTML += `
+                    <div class="tarot-card" onclick="this.classList.toggle('flipped')">
+                        <div class="tarot-face tarot-front">
+                            <div class="tarot-face-inner">
+                                <i class="fas fa-eye" style="font-size:3rem; color:rgba(212,175,55,0.3); margin-bottom:20px;"></i>
+                                <div style="font-family:serif; color:#d4af37; letter-spacing:2px;">CARD ${card.number}</div>
+                            </div>
+                        </div>
+                        <div class="tarot-face tarot-back">
+                            <div class="tarot-face-inner" style="padding:15px;">
+                                <div class="tarot-number">${card.number}</div>
+                                <i class="fas ${card.icon}" style="font-size:2.5rem; color:${card.color}; margin-bottom:15px;"></i>
+                                <div class="tarot-name">${card.name}</div>
+                                <div class="tarot-desc">${card.desc}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 5. Sciences
+            const sciContent = document.getElementById('sci-content-area');
+            sciContent.innerHTML = `
+                <div id="pane-physics" class="sci-pane active">${OS_DATA.sciences.physics}</div>
+                <div id="pane-biology" class="sci-pane">${OS_DATA.sciences.biology}</div>
+                <div id="pane-civics" class="sci-pane">${OS_DATA.sciences.civics}</div>
+            `;
+        }
+
+        // Science Tab Switcher
+        function switchSciTab(paneId, element) {
+            document.querySelectorAll('.sci-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            
+            document.querySelectorAll('.sci-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById(`pane-${paneId}`).classList.add('active');
+        }
+
+        // Start Menu Toggle
+        function toggleStartMenu(e) {
+            if(e) e.stopPropagation();
+            const menu = document.getElementById('start-menu');
+            const btn = document.getElementById('start-btn');
+            menu.classList.toggle('active');
+            btn.classList.toggle('active');
+        }
+        
+        // Close start menu if clicked outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('start-menu');
+            const btn = document.getElementById('start-btn');
+            if (menu.classList.contains('active') && !menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.remove('active');
+                btn.classList.remove('active');
+            }
+        });
+
+        // Clock Update
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            document.getElementById('clock-time').innerText = `${hours}:${minutes} ${ampm}`;
+            document.getElementById('clock-date').innerText = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+
+        
+        // 1. 3D Particle Network (Background)
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgParticles = [];
+
+        function resizeCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            
+            const cursorCanvas = document.getElementById('cursor-canvas');
+            cursorCanvas.width = window.innerWidth;
+            cursorCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2;
+                this.color = `rgba(0, 242, 254, ${Math.random() * 0.5})`;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > bgCanvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > bgCanvas.height) this.vy *= -1;
+            }
+            draw() {
+                bgCtx.beginPath();
+                bgCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                bgCtx.fillStyle = this.color;
+                bgCtx.fill();
+            }
+        }
+
+        function initParticles() {
+            bgParticles = [];
+            let count = Math.min((window.innerWidth * window.innerHeight) / 15000, 100);
+            for (let i = 0; i < count; i++) bgParticles.push(new Particle());
+        }
+        initParticles();
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < bgParticles.length; i++) {
+                bgParticles[i].update();
+                bgParticles[i].draw();
+                
+                for (let j = i; j < bgParticles.length; j++) {
+                    let dx = bgParticles[i].x - bgParticles[j].x;
+                    let dy = bgParticles[i].y - bgParticles[j].y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 150) {
+                        bgCtx.beginPath();
+                        bgCtx.strokeStyle = `rgba(127, 0, 255, ${0.2 - dist/750})`;
+                        bgCtx.lineWidth = 0.5;
+                        bgCtx.moveTo(bgParticles[i].x, bgParticles[i].y);
+                        bgCtx.lineTo(bgParticles[j].x, bgParticles[j].y);
+                        bgCtx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+
+        // 2. Custom Glowing Cursor Trail Physics
+        const cursorCanvas = document.getElementById('cursor-canvas');
+        const cursorCtx = cursorCanvas.getContext('2d');
+        let mouse = { x: -100, y: -100 };
+        let points = [];
+        const maxPoints = 20;
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            
+            points.push({ x: mouse.x, y: mouse.y, age: 0 });
+            if (points.length > maxPoints) points.shift();
+        });
+
+        function animateCursor() {
+            cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+            
+            if (points.length > 0) {
+                cursorCtx.beginPath();
+                cursorCtx.moveTo(points[0].x, points[0].y);
+                
+                for (let i = 1; i < points.length; i++) {
+                    // Quadratic bezier for smoothness
+                    let xc = (points[i].x + points[i-1].x) / 2;
+                    let yc = (points[i].y + points[i-1].y) / 2;
+                    cursorCtx.quadraticCurveTo(points[i-1].x, points[i-1].y, xc, yc);
+                    points[i].age++;
+                }
+                
+                cursorCtx.lineTo(points[points.length-1].x, points[points.length-1].y);
+                
+                cursorCtx.lineWidth = 4;
+                cursorCtx.lineCap = 'round';
+                cursorCtx.lineJoin = 'round';
+                
+                // Create gradient for trail
+                let grad = cursorCtx.createLinearGradient(
+                    points[0].x, points[0].y, 
+                    points[points.length-1].x, points[points.length-1].y
+                );
+                grad.addColorStop(0, 'rgba(0, 242, 254, 0)');
+                grad.addColorStop(1, 'rgba(127, 0, 255, 0.8)');
+                
+                cursorCtx.strokeStyle = grad;
+                cursorCtx.shadowBlur = 10;
+                cursorCtx.shadowColor = '#00f2fe';
+                cursorCtx.stroke();
+                
+                // Remove old points
+                while(points.length > 0 && points[0].age > maxPoints) {
+                    points.shift();
+                }
+            }
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+
+        
+        window.onload = () => {
+            injectContent();
+            
+            // Boot sequence simulation
+            const bootScreen = document.getElementById('boot-screen');
+            const bootLog = document.getElementById('boot-log');
+            
+            const logs = [
+                "Loading User Profile: Mackenzie Birly Massie...",
+                "Allocating 26 years of memory...",
+                "Mounting Learning_Hub (FreeCodeCamp connected)...",
+                "Decrypting Ninjago Lore & Tarot Algorithms...",
+                "Establishing Sciences Database...",
+                "System Ready."
+            ];
+            
+            let i = 0;
+            const logInterval = setInterval(() => {
+                if(i < logs.length) {
+                    bootLog.innerText = logs[i];
+                    i++;
+                } else {
+                    clearInterval(logInterval);
+                    bootScreen.classList.add('boot-hidden');
+                    
+                    // Open default window after boot
+                    setTimeout(() => {
+                        WindowManager.openWindow('win-about');
+                    }, 1000);
+                }
+            }, 500);
+        };
+
+    </script>
+</body>
+</html>
